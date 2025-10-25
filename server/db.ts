@@ -1,6 +1,6 @@
-import { eq } from "drizzle-orm";
+import { and, desc, eq } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
-import { InsertUser, users } from "../drizzle/schema";
+import { InsertMenuPlan, InsertMenuPlanEntry, InsertRecipe, InsertRecipeIngredient, menuPlanEntries, menuPlans, recipeIngredients, recipes, InsertUser, users } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
 let _db: ReturnType<typeof drizzle> | null = null;
@@ -89,4 +89,133 @@ export async function getUserByOpenId(openId: string) {
   return result.length > 0 ? result[0] : undefined;
 }
 
-// TODO: add feature queries here as your schema grows.
+// Recipe queries
+export async function getUserRecipes(userId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(recipes).where(eq(recipes.userId, userId)).orderBy(desc(recipes.createdAt));
+}
+
+export async function getRecipeById(id: number) {
+  const db = await getDb();
+  if (!db) return null;
+  const result = await db.select().from(recipes).where(eq(recipes.id, id)).limit(1);
+  return result[0] || null;
+}
+
+export async function createRecipe(recipe: InsertRecipe) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  const result = await db.insert(recipes).values(recipe);
+  return result;
+}
+
+export async function updateRecipe(id: number, recipe: Partial<InsertRecipe>) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db.update(recipes).set(recipe).where(eq(recipes.id, id));
+}
+
+export async function deleteRecipe(id: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db.delete(recipeIngredients).where(eq(recipeIngredients.recipeId, id));
+  await db.delete(recipes).where(eq(recipes.id, id));
+}
+
+// Recipe ingredient queries
+export async function getRecipeIngredients(recipeId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(recipeIngredients).where(eq(recipeIngredients.recipeId, recipeId));
+}
+
+export async function createRecipeIngredient(ingredient: InsertRecipeIngredient) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  const result = await db.insert(recipeIngredients).values(ingredient);
+  return result;
+}
+
+export async function updateRecipeIngredient(id: number, ingredient: Partial<InsertRecipeIngredient>) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db.update(recipeIngredients).set(ingredient).where(eq(recipeIngredients.id, id));
+}
+
+export async function deleteRecipeIngredient(id: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db.delete(recipeIngredients).where(eq(recipeIngredients.id, id));
+}
+
+// Menu plan queries
+export async function getUserMenuPlans(userId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(menuPlans).where(eq(menuPlans.userId, userId)).orderBy(desc(menuPlans.createdAt));
+}
+
+export async function getMenuPlanById(id: number) {
+  const db = await getDb();
+  if (!db) return null;
+  const result = await db.select().from(menuPlans).where(eq(menuPlans.id, id)).limit(1);
+  return result[0] || null;
+}
+
+export async function createMenuPlan(plan: InsertMenuPlan) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  const result = await db.insert(menuPlans).values(plan);
+  return result;
+}
+
+export async function updateMenuPlan(id: number, plan: Partial<InsertMenuPlan>) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db.update(menuPlans).set(plan).where(eq(menuPlans.id, id));
+}
+
+export async function deleteMenuPlan(id: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db.delete(menuPlanEntries).where(eq(menuPlanEntries.menuPlanId, id));
+  await db.delete(menuPlans).where(eq(menuPlans.id, id));
+}
+
+// Menu plan entry queries
+export async function getMenuPlanEntries(menuPlanId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(menuPlanEntries).where(eq(menuPlanEntries.menuPlanId, menuPlanId));
+}
+
+export async function createMenuPlanEntry(entry: InsertMenuPlanEntry) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  const result = await db.insert(menuPlanEntries).values(entry);
+  return result;
+}
+
+export async function updateMenuPlanEntry(id: number, entry: Partial<InsertMenuPlanEntry>) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db.update(menuPlanEntries).set(entry).where(eq(menuPlanEntries.id, id));
+}
+
+export async function deleteMenuPlanEntry(id: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db.delete(menuPlanEntries).where(eq(menuPlanEntries.id, id));
+}
+
+export async function deleteMenuPlanEntriesByDate(menuPlanId: number, date: Date) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db.delete(menuPlanEntries).where(
+    and(
+      eq(menuPlanEntries.menuPlanId, menuPlanId),
+      eq(menuPlanEntries.date, date)
+    )
+  );
+}
