@@ -1,0 +1,29 @@
+services:
+  # Web Service
+  - type: web
+    name: menuplan-simulator-v2
+    runtime: node
+    region: frankfurt
+    plan: free
+    buildCommand: pnpm install && pnpm build
+    startCommand: pnpm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        fromDatabase:
+          name: menuplan-db
+          property: connectionString
+      - key: SESSION_SECRET
+        generateValue: true
+      - key: PORT
+        value: 10000
+    healthCheckPath: /api/health
+
+databases:
+  - name: menuplan-db
+    databaseName: menuplan_simulator
+    user: menuplan_user
+    region: frankfurt
+    plan: free
+
