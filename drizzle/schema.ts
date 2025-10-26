@@ -1,4 +1,4 @@
-import { int, mysqlEnum, mysqlTable, text, timestamp, varchar } from "drizzle-orm/mysql-core";
+import { boolean, date, decimal, int, mysqlEnum, mysqlTable, text, timestamp, varchar } from "drizzle-orm/mysql-core";
 
 /**
  * Core user table backing auth flow.
@@ -69,6 +69,9 @@ export const menuPlans = mysqlTable("menuPlans", {
   startDate: timestamp("startDate").notNull(),
   endDate: timestamp("endDate").notNull(),
   description: text("description"),
+  status: mysqlEnum("status", ["entwurf", "vorlage", "aktiv", "archiviert"]).default("entwurf").notNull(),
+  maxBudgetPerDay: int("maxBudgetPerDay").default(0), // in cents
+  budgetTolerance: decimal("budgetTolerance", { precision: 5, scale: 2 }).default("10.00"), // in percent
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 });
@@ -91,3 +94,53 @@ export const menuPlanEntries = mysqlTable("menuPlanEntries", {
 
 export type MenuPlanEntry = typeof menuPlanEntries.$inferSelect;
 export type InsertMenuPlanEntry = typeof menuPlanEntries.$inferInsert;
+
+/**
+ * Menu plan recipes table - stores multiple recipes per meal entry
+ */
+export const menuPlanRecipes = mysqlTable("menuPlanRecipes", {
+  id: int("id").autoincrement().primaryKey(),
+  entryId: int("entryId").notNull(),
+  recipeId: int("recipeId").notNull(),
+  portions: int("portions").default(4).notNull(),
+  isSelected: boolean("isSelected").default(true),
+  isAlternative: boolean("isAlternative").default(false),
+  sortOrder: int("sortOrder").default(0),
+});
+
+export type MenuPlanRecipe = typeof menuPlanRecipes.$inferSelect;
+export type InsertMenuPlanRecipe = typeof menuPlanRecipes.$inferInsert;
+
+/**
+ * Order lists table - stores procurement order lists
+ */
+export const orderLists = mysqlTable("orderLists", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  menuPlanId: int("menuPlanId"),
+  name: varchar("name", { length: 255 }).notNull(),
+  status: mysqlEnum("status", ["entwurf", "bestaetigt", "bestellt", "archiviert"]).default("entwurf").notNull(),
+  notes: text("notes"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type OrderList = typeof orderLists.$inferSelect;
+export type InsertOrderList = typeof orderLists.$inferInsert;
+
+/**
+ * Order list items table - stores items in an order list
+ */
+export const orderListItems = mysqlTable("orderListItems", {
+  id: int("id").autoincrement().primaryKey(),
+  orderListId: int("orderListId").notNull(),
+  recipeId: int("recipeId").notNull(),
+  portions: int("portions").notNull(),
+  orderDay: date("orderDay").notNull(),
+  preparationTime: int("preparationTime").default(0), // in hours
+  leadTime: int("leadTime").default(0), // in days
+});
+
+export type OrderListItem = typeof orderListItems.$inferSelect;
+export type InsertOrderListItem = typeof orderListItems.$inferInsert;
+

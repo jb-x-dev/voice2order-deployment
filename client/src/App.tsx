@@ -7,6 +7,8 @@ import { ThemeProvider } from "./contexts/ThemeContext";
 import Home from "./pages/Home";
 import Recipes from "./pages/Recipes";
 import MenuPlanner from "./pages/MenuPlanner";
+import MenuPlannerV2 from "./pages/MenuPlannerV2";
+import OrderListManager from "./pages/OrderListManager";
 
 function Router() {
   // make sure to consider if you need authentication for certain routes
@@ -15,6 +17,8 @@ function Router() {
       <Route path={"/"} component={Home} />
       <Route path={"/recipes"} component={Recipes} />
       <Route path={"/menu-planner"} component={MenuPlanner} />
+      <Route path={"/menu-planner-v2"} component={MenuPlannerV2} />
+      <Route path={"/order-lists"} component={OrderListManager} />
       <Route path={"/404"} component={NotFound} />
       {/* Final fallback route */}
       <Route component={NotFound} />
